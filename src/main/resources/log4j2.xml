@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- #%L
+  fswalker
+  %%
+  Copyright (C) 2011 - 2019 Labimo Technology
+  %%
+  Project: FSWalker (https://github.com/kentxu/fswalker) 
+  This file is subject to the terms and conditions defined in file 'LICENSE', which 
+  is part of this source code package.
+  #L% -->
+
+<Configuration status="warn">
+	<Properties>
+		<Property name="basePath">.</Property>
+	</Properties>
+	<Appenders>
+		<RollingFile name="fileLogger"
+			fileName="${basePath}/fswalker.log"
+			filePattern="${basePath}/app-info-%d{yyyy-MM-dd}.log">
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+		</RollingFile>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<!-- <Logger name="com.labimo.fs.fswalker" level="error" additivity="false">
+			<appender-ref ref="fileLogger" level="debug" />
+		</Logger> -->
+		<Logger name="com.labimo.fs.fswalker" level="error" additivity="false">
+			<appender-ref ref="console" />
+		</Logger>
+		<Root level="error" additivity="false">
+			<appender-ref ref="console" />
+		</Root>
+	</Loggers>
+</Configuration>

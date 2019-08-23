@@ -1,0 +1,6 @@
+/target/
+/logs/
+/fswalker.log
+/dependency-reduced-pom.xml
+/.project
+/.classpath
