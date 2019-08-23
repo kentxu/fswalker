@@ -60,7 +60,7 @@ public class CLI {
 			Path outFile = FileSystems.getDefault().getPath(cmd.getOptionValue("o"));
 			try {
 				Files.createFile(outFile);
-				fswriter = new SimpleFSEntryWriter(outFile);
+				fswriter = new DefaultFSEntryWriter(outFile);
 			} catch (IOException e) {
 				System.out.println("unable to write to " + outFile);
 				LOGGER.error(e);
@@ -69,7 +69,7 @@ public class CLI {
 		} else if (cmd.hasOption("q")) {
 			fswriter = null;// no writer
 		} else {
-			fswriter = new SimpleFSEntryWriter(System.out);
+			fswriter = new DefaultFSEntryWriter(System.out);
 		}
 		if (cmd.hasOption('s')) {
 			writerOptions.add(OPTION.INCLUDE_DIR);

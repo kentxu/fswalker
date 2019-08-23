@@ -22,15 +22,15 @@ import org.apache.logging.log4j.core.util.CloseShieldOutputStream;
 
 import com.opencsv.CSVWriter;
 
-public class SimpleFSEntryWriter implements FSEntryWriter {
-	private static final Logger LOGGER = LogManager.getLogger(SimpleFSEntryWriter.class.getName());
+public class DefaultFSEntryWriter implements FSEntryWriter {
+	private static final Logger LOGGER = LogManager.getLogger(DefaultFSEntryWriter.class.getName());
 
 	private OutputStream os = null;
 	private Writer osw = null;
 	private EnumSet<OPTION> options = EnumSet.noneOf(OPTION.class);
 	CSVWriter csvwriter = null;
 
-	public SimpleFSEntryWriter(OutputStream os) {
+	public DefaultFSEntryWriter(OutputStream os) {
 		CloseShieldOutputStream csos = new CloseShieldOutputStream(os);
 		this.os = csos;
 		try {
@@ -42,11 +42,11 @@ public class SimpleFSEntryWriter implements FSEntryWriter {
 		}
 	}
 
-	public SimpleFSEntryWriter(File file) throws FileNotFoundException {
+	public DefaultFSEntryWriter(File file) throws FileNotFoundException {
 		this(new FileOutputStream(file));
 	}
 
-	public SimpleFSEntryWriter(Path outputPath) throws IOException {
+	public DefaultFSEntryWriter(Path outputPath) throws IOException {
 		this(Files.newOutputStream(outputPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE));
 	}
 

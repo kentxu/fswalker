@@ -50,7 +50,7 @@ public class FSWalkerTest {
 	public void testFSWalkerWithFileOutput() throws FileNotFoundException {
 		LOGGER.debug("running testFSWalkerWithFileOutput");
 		FSWalker walker = new DefaultFSWalker();
-		FSEntryWriter writer = new SimpleFSEntryWriter(new File("target/FSWalkerTest.testFSWalker-result.text"));
+		FSEntryWriter writer = new DefaultFSEntryWriter(new File("target/FSWalkerTest.testFSWalker-result.text"));
 		FSVisitor visitor = new FSVisitor(writer);
 		walker.setFSVisitor(visitor);
 		walker.walk(testLoadRootPath, Integer.MAX_VALUE);
