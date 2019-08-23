@@ -89,7 +89,7 @@ public class CLI {
 			fswriter.setOptions(writerOptions);
 
 		// configure walker
-		FSWalkerAPI walker = new FSWalker(visitor);
+		FSWalker walker = new DefaultFSWalker(visitor);
 		int maxDepth = Integer.MAX_VALUE;
 		if (cmd.hasOption('d')) {
 			try {

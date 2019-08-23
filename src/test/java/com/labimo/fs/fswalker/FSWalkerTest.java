@@ -49,7 +49,7 @@ public class FSWalkerTest {
 	@Test
 	public void testFSWalkerWithFileOutput() throws FileNotFoundException {
 		LOGGER.debug("running testFSWalkerWithFileOutput");
-		FSWalkerAPI walker = new FSWalker();
+		FSWalker walker = new DefaultFSWalker();
 		FSEntryWriter writer = new SimpleFSEntryWriter(new File("target/FSWalkerTest.testFSWalker-result.text"));
 		FSVisitor visitor = new FSVisitor(writer);
 		walker.setFSVisitor(visitor);
@@ -63,7 +63,7 @@ public class FSWalkerTest {
 
 	@Test
 	public void testFSWalker() throws FileNotFoundException {
-		FSWalkerAPI walker = new FSWalker();
+		FSWalker walker = new DefaultFSWalker();
 		FSVisitor visitor = new FSVisitor();
 		walker.setFSVisitor(visitor);
 		walker.walk(testLoadRootPath, Integer.MAX_VALUE);
@@ -75,7 +75,7 @@ public class FSWalkerTest {
 	
 	@Test
 	public void testFSWalkerDepth1() throws FileNotFoundException {
-		FSWalkerAPI walker = new FSWalker();
+		FSWalker walker = new DefaultFSWalker();
 		FSVisitor visitor = new FSVisitor();
 		walker.setFSVisitor(visitor);
 		walker.walk(testLoadRootPath, 1);
@@ -87,7 +87,7 @@ public class FSWalkerTest {
 	
 	@Test
 	public void testFSWalkerDepth2() throws FileNotFoundException {
-		FSWalkerAPI walker = new FSWalker();
+		FSWalker walker = new DefaultFSWalker();
 		FSVisitor visitor = new FSVisitor();
 		walker.setFSVisitor(visitor);
 		walker.walk(testLoadRootPath, 2);
@@ -100,12 +100,12 @@ public class FSWalkerTest {
 	@Test
 	public void testFSWalkerSingleFolderAndFile() throws URISyntaxException {
 		Path path=testLoadRootPath.resolve("load1");
-		FSWalkerAPI walker = new FSWalker();
+		FSWalker walker = new DefaultFSWalker();
 		walker.walk(path, Integer.MAX_VALUE);
 		assertEquals(2, walker.getFileCount());
 
 		path=testLoadRootPath.resolve("load1/1.txt");
-		walker = new FSWalker();
+		walker = new DefaultFSWalker();
 		walker.walk(path, Integer.MAX_VALUE);
 		assertEquals(1, walker.getFileCount());
 		
@@ -130,8 +130,8 @@ public class FSWalkerTest {
 	public void testTreadSimple() throws URISyntaxException, InterruptedException {
 		Path path=testLoadRootPath.resolve("load1");
 		Path path2 = path.getParent().resolve("load2");
-		FSWalker walker = new FSWalker(path);
-		FSWalker walker2 = new FSWalker(path2);
+		DefaultFSWalker walker = new DefaultFSWalker(path);
+		DefaultFSWalker walker2 = new DefaultFSWalker(path2);
 
 		Thread thread1 = new Thread(walker);
 		Thread thread2 = new Thread(walker2);
@@ -153,7 +153,8 @@ public class FSWalkerTest {
 
 			@Override
 			public void accept(Path t) {
-				FSWalker walker = new FSWalker(t);
+				DefaultFSWalker walker = new DefaultFSWalker(t);
+				//WARNING: not safe, visitor not thread safe
 				walker.setFSVisitor(visitor);
 				executor.execute(walker);
 			}
