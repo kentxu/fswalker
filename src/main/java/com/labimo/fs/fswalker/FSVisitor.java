@@ -39,7 +39,7 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 
 	private Set<FSVisitorOption> options = EnumSet.noneOf(FSVisitorOption.class);
 
-	static int SAMPLING_CONTENTTRESH = 1024 * 1;
+	static int SAMPLING_CONTENTTRESH = 1024 * 20;
 	private byte[] contentBytes = null;
 
 	public FSVisitor() {
