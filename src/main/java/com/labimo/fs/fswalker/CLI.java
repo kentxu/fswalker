@@ -121,7 +121,7 @@ public class CLI {
 			System.out.println("Directories: " + visitor.getDirCount());
 			System.out.println("Files: " + visitor.getFileCount());
 			System.out.println("Errors: " + visitor.getFileErrorCount());
-			System.out.println("Completed in " + (endTime - startTime) / 100 + " seconds");
+			System.out.println("Completed in " + (endTime - startTime)/1000F  + " seconds");
 		}
 	}
 
