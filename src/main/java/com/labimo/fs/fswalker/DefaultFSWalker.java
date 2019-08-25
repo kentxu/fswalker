@@ -32,7 +32,7 @@ public class DefaultFSWalker implements FSWalker, Runnable {
 
 	@Override
 	public void walk(Path path, int depth) {
-		LOGGER.debug("start walking " + this.path);
+		LOGGER.trace("start walking " + this.path);
 		Path dir = path;
 		try {
 			if (visitor == null) {
@@ -44,6 +44,8 @@ public class DefaultFSWalker implements FSWalker, Runnable {
 			Files.walkFileTree(dir, walkOptions, depth, visitor);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			LOGGER.trace("end walking " + this.path);
 		}
 
 	}

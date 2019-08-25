@@ -13,15 +13,17 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.openhft.hashing.LongHashFunction;
 
-public class FSVisitor extends SimpleFileVisitor<Path> {
-
-	private static final Logger LOGGER = LogManager.getLogger(FSVisitor.class.getName());
+public class ParallelFSVisitor extends SimpleFileVisitor<Path> {
+	
+	private static final Logger LOGGER = LogManager.getLogger(ParallelFSVisitor.class.getName());
 
 	FSEntryWriter writer;
 	/**
@@ -29,7 +31,6 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 	 */
 	private long fileCount = 0;
 	private long fileErrorCount = 0;
-	private long dirErrorCount=0;
 
 	private long totalSize = 0;
 
@@ -43,11 +44,11 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 	static int SAMPLING_CONTENTTRESH = 1024 * 20;
 	private byte[] contentBytes = null;
 
-	public FSVisitor() {
+	public ParallelFSVisitor() {
 		super();
 	}
 
-	public FSVisitor(FSEntryWriter writer) {
+	public ParallelFSVisitor(FSEntryWriter writer) {
 		super();
 		this.writer = writer;
 	}
@@ -70,7 +71,6 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 
 	@Override
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-		LOGGER.trace(file);
 		// it may be a directory when max depth is reached.
 		if (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS)) {
 			preVisitDirectory(file, attrs);
@@ -102,8 +102,7 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 
 	@Override
 	public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-		LOGGER.warn("failed file visit "+file,exc);
-		fileErrorCount++;
+		fileErrorCount = getFileErrorCount() + 1;
 		FSEntry entry = new FSEntry(file, true);
 		this.writeFSEntry(entry);
 		return FileVisitResult.CONTINUE;
@@ -111,17 +110,11 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-//		if (dir.getFileName().toString().endsWith(".app")) {
-//			return FileVisitResult.SKIP_SUBTREE;
-//		}
-		LOGGER.trace(dir);
-
+		
 		dirCount++;
 //		FSEntry entry = new FSDirEntry(dir, attrs);
 		FSDirEntry currentDirEntry = new FSDirEntry(dir, attrs);
-		synchronized (visitingPaths) {
-			visitingPaths.put(dir, currentDirEntry);
-		}
+		visitingPaths.put(dir, currentDirEntry);
 //		if (!this.options.contains(FSVisitorOption.COMPUTE_DIRSIZE)) {
 //			this.writeFSEntry(currentDirEntry);
 //		}
@@ -132,23 +125,15 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 
 	@Override
 	public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-		LOGGER.trace(dir);
 
-		if (exc!=null) {
-			dirErrorCount++;
-			LOGGER.warn("failed diretory visit "+dir,exc);
-		}
-		FSDirEntry currentDirEntry =null;
-		synchronized (visitingPaths) {
-
-		 currentDirEntry=visitingPaths.get(dir);
+		FSDirEntry currentDirEntry = visitingPaths.get(dir);
 		if (currentDirEntry == null) {
 			// not supposed to happen
 			LOGGER.error("exiting a directory not in visiting stack " + dir);
 			return FileVisitResult.CONTINUE;
 		}
-			visitingPaths.remove(dir);
-		}
+		visitingPaths.remove(dir);
+
 		if (exc != null) {
 			currentDirEntry.setSize(0);
 			currentDirEntry.setError(exc);
@@ -200,6 +185,10 @@ public class FSVisitor extends SimpleFileVisitor<Path> {
 
 	public long getDirCount() {
 		return dirCount;
+	}
+
+	public ParallelFSVisitor fork() {
+		return null;
 	}
 
 }
