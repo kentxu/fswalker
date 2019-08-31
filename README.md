@@ -11,33 +11,49 @@ git clone https://github.com/kentxu/fswalker.git && cd fswalker
 mvn clean package
 ```
 
-Generated JAR files are in the target sub directory. 
+Generated JAR files are in the "target" directory. 
 
-It generates fswalker-x.x.x.jar with all the dependencies in a single package. It is great for command line execution. 
+fswalker-x.x.x.jar comes with all the dependencies in a single package. It is great for command line execution. 
 
-It also generates original-fswalker-x.x.x.jar which only contains FSWalker code without dependencies.
+original-fswalker-x.x.x.jar is the pure fswalker lib without dependencies.
 
 
 
 ## CLI
 
-To print a list of all content in c:\temp.
+To show all content in c:\temp.
 > java -jar target/fswalker-x.x.x.jar c:\temp
 
-To show a summary of c:\temp.
+To show a summary of c:\temp .
 > java -jar target/fswalker-x.x.x.jar -c c:\temp
 
-Or, only show a summary in a human friendly format.
+To see all possible CLI options.
+> java -jar target/fswalker-x.x.x.jar 
+
+Or, only show a summary in a human friendly format. This also turns on the speedy concurrent scanning mode by default.
 > java -jar target/fswalker-x.x.x.jar -chq c:\temp
 
-To show all files with detailed information.
+To shown detailed information for all content.
 > java -jar target/fswalker-x.x.x.jar -l c:\temp
 
-Or, show the same list with content hash.
+
+
+## More Advanced CLI
+
+Show the list with content hash.
 > java -jar target/fswalker-x.x.x.jar -l -hc size20k c:\temp
 
-For a print list of all possible options, execute without any parameter.
-> java -jar target/fswalker-x.x.x.jar 
+Or, the speedy way to do the same.
+> java -jar target/fswalker-x.x.x.jar -l -hc size20k -co 1 c:\temp
+
+
+## FAQ
+### What is concurrent mode?
+Concurrent mode is the multi-threaded implementation of the walker. It does speed up things a lot as long as the disk IO is fast. On a SSD drive, using concurrent mode grants a significant speed boost. This is also helpful when content hash option is used.
+
+One major trade off is the sequence of traversal is not guaranteed in this mode. 
+
+This mode is turned on by default console output is not required, e.g. -q or database output. You can force concurrent mode wiht "-co 1". 
 
 ## Troubleshoot
 

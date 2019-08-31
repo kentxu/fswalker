@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.EnumSet;
 
-public interface FSEntryWriter extends AutoCloseable {
+public interface FSWriter extends AutoCloseable {
 
 	enum OPTION {
 		INCLUDE_DIR, 

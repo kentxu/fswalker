@@ -1,4 +1,4 @@
-package com.labimo.fs.fswalker;
+package com.labimo.fs.fswalker.concurrency;
 
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -12,34 +12,44 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.labimo.fs.fswalker.DefaultFSVisitor;
+import com.labimo.fs.fswalker.FSVisitor;
+import com.labimo.fs.fswalker.FSWalker;
+import com.labimo.fs.fswalker.FSWalkerListener;
 import com.labimo.fs.fswalker.FSWalkerListener.EVT;
 
-public class DefaultFSWalker implements FSWalker {
+public class ParallelFSWalker implements FSWalker {
 
-	private static final Logger LOGGER = LogManager.getLogger(DefaultFSWalker.class.getName());
+	private static final Logger LOGGER = LogManager.getLogger(ParallelFSWalker.class.getName());
 	public final static int INTERVAL = 1000;
 	private FSVisitor visitor = null;
 	Path path = null;
-	List<FSWalkerListener> listeners =  Collections.synchronizedList(new ArrayList<FSWalkerListener>(1));
+	List<FSWalkerListener> listeners = Collections.synchronizedList(new ArrayList<FSWalkerListener>(1));
+	ParallelFSVisitorContext ctx = new ParallelFSVisitorContext();
 
-	public DefaultFSWalker() {
+	public ParallelFSWalker(ParallelFSVisitorContext ctx) {
+		this();
+		this.ctx=ctx;
+	}
+	
+	private ParallelFSWalker() {
 		super();
 	}
-
-	public DefaultFSWalker(Path path) {
-		super();
-		this.path = path;
-	}
-
-	public DefaultFSWalker(FSVisitor visitor) {
-		super();
-		this.visitor = visitor;
-	}
+//
+//	public ParallelFSWalker(Path path) {
+//		super();
+//		this.path = path;
+//	}
+//
+//	public ParallelFSWalker(FSVisitor visitor) {
+//		super();
+//		this.visitor = visitor;
+//	}
 
 	@Override
 	public void walk(Path path, int depth) {
 		this.path=path;
-		LOGGER.trace("start walking " + this.path);
+		LOGGER.trace("start parallel walking " + this.path);
 		Path dir = path;
 		fireEvent(FSWalkerListener.EVT.START);
 
@@ -51,8 +61,12 @@ public class DefaultFSWalker implements FSWalker {
 				return;
 			EnumSet<FileVisitOption> walkOptions = EnumSet.noneOf(FileVisitOption.class);
 			Files.walkFileTree(dir, walkOptions, depth, visitor);
+			ctx.waitForScanToComplete();
 			visitor.setCompleted();
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			LOGGER.trace("end walking " + this.path);
@@ -70,7 +84,8 @@ public class DefaultFSWalker implements FSWalker {
 					removeList.add(l);
 				}
 			}
-			if (removeList.size()>0) listeners.removeAll(removeList);
+			if (removeList.size() > 0)
+				listeners.removeAll(removeList);
 		}
 	}
 
