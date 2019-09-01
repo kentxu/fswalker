@@ -1,6 +1,8 @@
-# fswalker
+# FSWalker
 
-A library to iterate through directory structure and map out all files found within for further data analysis. It also comes with basic command line support for some common use cases.
+A library to iterate through directory structure to perform data collection for further data analysis. One use case is to list all the files and directories. 
+
+It also comes with basic command line support for some common use cases.
 
 
 
@@ -19,7 +21,7 @@ original-fswalker-x.x.x.jar is the pure fswalker lib without dependencies.
 
 
 
-## CLI
+## CLI Usage
 
 To show all content in c:\temp.
 > java -jar target/fswalker-x.x.x.jar c:\temp
@@ -37,8 +39,7 @@ To shown detailed information for all content.
 > java -jar target/fswalker-x.x.x.jar -l c:\temp
 
 
-
-## More Advanced CLI
+## More Advanced CLI Usage
 
 Show the list with content hash.
 > java -jar target/fswalker-x.x.x.jar -l -hc size20k c:\temp
@@ -46,6 +47,40 @@ Show the list with content hash.
 Or, the speedy way to do the same.
 > java -jar target/fswalker-x.x.x.jar -l -hc size20k -co 1 c:\temp
 
+## Sample API USage
+
+The snippet below scans directory "/Library".
+
+```
+FSVisitor visitor = new DefaultFSVisitor(null);
+walker.setFSVisitor(visitor);
+walker.walk("/Library", Integer.MAX_VALUE);
+writer.close();
+//do something with visitor, e.g. visitor.getFileCount();
+```
+
+The snippet below scans directory "/Library" and writes output to test.csv file.
+
+```
+FSWalker walker = new DefaultFSWalker();
+FSWriter writer = new DefaultFSWriter(new File("test.csv"));
+FSVisitor visitor = new DefaultFSVisitor(writer);
+walker.setFSVisitor(visitor);
+walker.walk("/Library", Integer.MAX_VALUE);
+writer.close();
+//do something with visitor, e.g. visitor.getFileCount();
+```
+
+Concurrent Mode
+
+```
+FSWriter writer=null;
+ParallelFSVisitorContext ctx=new ParallelFSVisitorContext(writer);
+ParallelFSVisitor visitor = new ParallelFSVisitor(ctx);
+ParallelFSWalker walker=new ParallelFSWalker(ctx);
+walker.setFSVisitor(visitor);
+walker.walk("/Library", Integer.MAX_VALUE);
+```
 
 ## FAQ
 ### What is concurrent mode?

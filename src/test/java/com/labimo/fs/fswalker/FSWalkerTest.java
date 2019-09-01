@@ -225,19 +225,6 @@ public class FSWalkerTest {
 		LOGGER.info("ending testParallelVisitor");
 	}
 	
-	@Ignore
-	@Test
-	public void testTemp() throws InterruptedException {
-		FSWriter writer=null;
-		ParallelFSVisitorContext ctx=new ParallelFSVisitorContext(writer);
-		File f=new File("/Users/kxu/work");
-		ParallelFSVisitor visitor = new ParallelFSVisitor(ctx);
-		ParallelFSWalker walker=new ParallelFSWalker(ctx);
-		walker.setFSVisitor(visitor);
 
-		walker.walk(f.toPath(), Integer.MAX_VALUE);
-		System.out.println(visitor.getFileCount());
-		System.out.println(visitor.getTotalSize());
-	}
 
 }
