@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.labimo.fs.fswalker.FSEntry;
 import com.labimo.fs.fswalker.FSVisitor;
 import com.labimo.fs.fswalker.FSWalker;
 import com.labimo.fs.fswalker.FSWalkerFactory;
@@ -19,7 +20,10 @@ public class ParallelFSVisitorContext  implements FSWalkerListener {
 	ThreadPoolExecutor walkerPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_WALKER);
 	private FSWriter writer;
 	
-	
+	private boolean pause=false;
+
+
+
 	public ParallelFSVisitorContext() {
 	}
 	
@@ -44,9 +48,10 @@ public class ParallelFSVisitorContext  implements FSWalkerListener {
 		return walkerPoolExecutor.getQueue().size()>=MAX_WALKER_QUEUE;
 	}
 
-	private void addTask(Runnable cmd) {
+	public void addTask(FSWalker cmd) {
 		walkerPoolExecutor.execute(cmd);
 	}
+	
 	
 	public FSWalker createFSWalker(Path path,BasicFileAttributes attrs,FSVisitor visitor ) {
 		FSWalker walker = FSWalkerFactory.getInstance().getFSWalker(path, attrs, visitor);
@@ -56,6 +61,10 @@ public class ParallelFSVisitorContext  implements FSWalkerListener {
 		return walker;
 	}
 	
+	
+	protected boolean isOnPause(Path p,FSEntry entry) {
+		return pause;
+	}
 
 	
 
@@ -70,11 +79,21 @@ public class ParallelFSVisitorContext  implements FSWalkerListener {
 	public void waitForScanToComplete() throws InterruptedException {
 		
 		while ( walkerPoolExecutor.getActiveCount()!=0 || !walkerPoolExecutor.getQueue().isEmpty() ) {
-			Thread.sleep(100);
+			Thread.sleep(200);
 		}
 		walkerPoolExecutor.shutdown();
 		walkerPoolExecutor.awaitTermination(20, TimeUnit.SECONDS);
 		
+	}
+	
+	
+	public boolean isPause() {
+		return pause;
+	}
+
+
+	public void setPause(boolean pause) {
+		this.pause = pause;
 	}
 	
 	

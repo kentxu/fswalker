@@ -2,7 +2,7 @@
 
 A library to iterate through directory structure to perform data collection for further data analysis. One use case is to list all the files and directories. 
 
-It also comes with basic command line support for some common use cases.
+It also comes with basic command line support for several common use cases.
 
 
 
@@ -15,7 +15,7 @@ mvn clean package
 
 Generated JAR files are in the "target" directory. 
 
-fswalker-x.x.x.jar comes with all the dependencies in a single package. It is great for command line execution. 
+fswalker-x.x.x.jar comes with all the dependencies in a single package. It is convenient for command line execution. 
 
 original-fswalker-x.x.x.jar is the pure fswalker lib without dependencies.
 
@@ -71,7 +71,7 @@ writer.close();
 //do something with visitor, e.g. visitor.getFileCount();
 ```
 
-Concurrent Mode
+Concurrent mode example: Synchronized root walker w/ parallel sub walkers
 
 ```
 FSWriter writer=null;
@@ -81,6 +81,23 @@ ParallelFSWalker walker=new ParallelFSWalker(ctx);
 walker.setFSVisitor(visitor);
 walker.walk("/Library", Integer.MAX_VALUE);
 ```
+
+Concurrent mode example: pause and resume 
+
+```
+FSWriter writer=null;
+ParallelFSVisitorContext ctx=new ParallelFSVisitorContext(writer);
+ParallelFSVisitor visitor = new ParallelFSVisitor(ctx);
+ParallelFSWalker walker=new ParallelFSWalker(testLoadRootPath,ctx);
+walker.setFSVisitor(visitor);
+ctx.addTask(walker);
+ctx.setPause(true);
+Thread.sleep(2000);
+ctx.setPause(false);
+ctx.waitForScanToComplete();
+		
+```
+
 
 ## FAQ
 ### What is concurrent mode?
@@ -100,8 +117,10 @@ FSWalker log can be turned on using standard log4j2 configuration file. For exam
 ### 0.0.1
 * First release. 
 * Basic FSWalker implementation.
+* Writer: CSV or Console output.
 * Basic CLI 
 
-### 0.2.0
-* Alternative concurrent implementation. 
+### 0.0.2
+* Concurrent walker implementation. 
 * Add two new hash modes: "full" and "size20ke" 
+

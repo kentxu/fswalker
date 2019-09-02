@@ -41,6 +41,7 @@ public class ParallelFSVisitor extends DefaultFSVisitor {
 
 	@Override
 	public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+		checkPause(file,null);
 		if (getRootPath()!=null && ctx != null && !ctx.isTaskQueueFull()) {
 			subVisitorCount.incrementAndGet();
 			FSVisitor visitor = this.createVisitor();
@@ -65,6 +66,7 @@ public class ParallelFSVisitor extends DefaultFSVisitor {
 
 		this.writeFSEntry(entry);
 		currentPath = null;
+		checkPause(file,entry);
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -80,6 +82,8 @@ public class ParallelFSVisitor extends DefaultFSVisitor {
 
 	@Override
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+		checkPause(dir,null);
+
 		// do not start spawning walker on the first entry
 		if (getDirCount() > 0 && ctx != null && !ctx.isTaskQueueFull()) {
 			subVisitorCount.incrementAndGet();
@@ -88,6 +92,7 @@ public class ParallelFSVisitor extends DefaultFSVisitor {
 			// not going into post visit directory
 			return FileVisitResult.SKIP_SUBTREE;
 		}
+		checkPause(dir,null);
 
 		return super.preVisitDirectory(dir, attrs);
 	}
@@ -160,6 +165,16 @@ public class ParallelFSVisitor extends DefaultFSVisitor {
 		fs.setParent(this);
 		fs.setWriter(writer);
 		return fs;
+	}
+	
+	private void checkPause(Path p,FSEntry entry) {
+		while (ctx.isOnPause(p,entry)) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				LOGGER.error( e);
+			}
+		}
 	}
 
 }

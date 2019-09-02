@@ -225,6 +225,28 @@ public class FSWalkerTest {
 		LOGGER.info("ending testParallelVisitor");
 	}
 	
+	@Test
+	public void testParallelVisitor2() throws URISyntaxException, InterruptedException, IOException {
+		LOGGER.info("starting testParallelVisitor /pause");
 
+		FSWriter writer=null;
+		ParallelFSVisitorContext ctx=new ParallelFSVisitorContext(writer);
+		
+		ParallelFSVisitor visitor = new ParallelFSVisitor(ctx);
+		ParallelFSWalker walker=new ParallelFSWalker(testLoadRootPath,ctx);
+		walker.setFSVisitor(visitor);
+		ctx.addTask(walker);
+		ctx.setPause(true);
+		Thread.sleep(2000);
+		ctx.setPause(false);
+		
+		ctx.waitForScanToComplete();
+		if (writer!=null) {
+			writer.close();
+		}
+		assertEquals(0, visitor.getFileErrorCount());
+		assertEquals(5 , visitor.getFileCount());
+		LOGGER.info("ending testParallelVisitor");
+	}
 
 }

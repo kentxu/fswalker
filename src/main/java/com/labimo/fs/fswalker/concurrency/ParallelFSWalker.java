@@ -26,14 +26,23 @@ public class ParallelFSWalker implements FSWalker {
 	Path path = null;
 	List<FSWalkerListener> listeners = Collections.synchronizedList(new ArrayList<FSWalkerListener>(1));
 	ParallelFSVisitorContext ctx = new ParallelFSVisitorContext();
+	private boolean shutdownAndWait=true;
+	
 
+	
 	public ParallelFSWalker(ParallelFSVisitorContext ctx) {
-		this();
+		this((Path)null);
 		this.ctx=ctx;
 	}
 	
-	private ParallelFSWalker() {
+	public ParallelFSWalker(Path path,ParallelFSVisitorContext ctx) {
+		this(ctx);
+		this.path=path;
+	}
+	
+	private ParallelFSWalker(Path path) {
 		super();
+		this.path=path;
 	}
 //
 //	public ParallelFSWalker(Path path) {
@@ -61,12 +70,12 @@ public class ParallelFSWalker implements FSWalker {
 				return;
 			EnumSet<FileVisitOption> walkOptions = EnumSet.noneOf(FileVisitOption.class);
 			Files.walkFileTree(dir, walkOptions, depth, visitor);
-			ctx.waitForScanToComplete();
+			
+			if (shutdownAndWait) ctx.waitForScanToComplete();
 			visitor.setCompleted();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			LOGGER.trace("end walking " + this.path);
@@ -106,6 +115,7 @@ public class ParallelFSWalker implements FSWalker {
 
 	@Override
 	public void run() {
+		shutdownAndWait=false;
 		walk(this.path, Integer.MAX_VALUE);
 	}
 
