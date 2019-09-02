@@ -29,4 +29,9 @@ public class FSDirEntry extends FSEntry {
 		this.size = size;
 	}
 
+	@Override
+	public String toString() {
+		return "FSDirEntry [path=" + path + "]";
+	}
+	
 }

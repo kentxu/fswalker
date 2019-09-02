@@ -33,8 +33,9 @@ public class FSEntry {
 		this.attrs = attrs;
 	}
 
+	@Override
 	public String toString() {
-		return path.toString();
+		return "FSEntry [path=" + path + "]";
 	}
 
 	public IOException getError() {
@@ -72,6 +73,5 @@ public class FSEntry {
 	public void setHash(String hash) {
 		this.hash = hash;
 	}
-	
-	
+
 }

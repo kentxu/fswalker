@@ -22,15 +22,15 @@ import org.apache.logging.log4j.core.util.CloseShieldOutputStream;
 
 import com.opencsv.CSVWriter;
 
-public class SimpleFSEntryWriter implements FSEntryWriter {
-	private static final Logger LOGGER = LogManager.getLogger(SimpleFSEntryWriter.class.getName());
+public class DefaultFSWriter implements FSWriter {
+	private static final Logger LOGGER = LogManager.getLogger(DefaultFSWriter.class.getName());
 
 	private OutputStream os = null;
 	private Writer osw = null;
 	private EnumSet<OPTION> options = EnumSet.noneOf(OPTION.class);
 	CSVWriter csvwriter = null;
 
-	public SimpleFSEntryWriter(OutputStream os) {
+	public DefaultFSWriter(OutputStream os) {
 		CloseShieldOutputStream csos = new CloseShieldOutputStream(os);
 		this.os = csos;
 		try {
@@ -42,16 +42,16 @@ public class SimpleFSEntryWriter implements FSEntryWriter {
 		}
 	}
 
-	public SimpleFSEntryWriter(File file) throws FileNotFoundException {
+	public DefaultFSWriter(File file) throws FileNotFoundException {
 		this(new FileOutputStream(file));
 	}
 
-	public SimpleFSEntryWriter(Path outputPath) throws IOException {
+	public DefaultFSWriter(Path outputPath) throws IOException {
 		this(Files.newOutputStream(outputPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE));
 	}
 
 	@Override
-	public void write(FSEntry entry) throws UnsupportedEncodingException, IOException {
+	public synchronized void write(FSEntry entry) throws UnsupportedEncodingException, IOException {
 		Path p = entry.getPath();
 
 		if (entry.getError() != null && !options.contains(OPTION.INCLUDE_FAILED)) {

@@ -4,3 +4,5 @@
 /dependency-reduced-pom.xml
 /.project
 /.classpath
+/bin/
+/log4j2.xml

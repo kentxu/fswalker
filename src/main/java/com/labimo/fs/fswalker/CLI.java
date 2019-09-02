@@ -1,7 +1,5 @@
 package com.labimo.fs.fswalker;
 
-
-
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -23,14 +21,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.labimo.fs.fswalker.FSEntryWriter.OPTION;
-
+import com.labimo.fs.fswalker.FSWriter.OPTION;
+import com.labimo.fs.fswalker.concurrency.ParallelFSVisitor;
+import com.labimo.fs.fswalker.concurrency.ParallelFSVisitorContext;
+import com.labimo.fs.fswalker.concurrency.ParallelFSWalker;
 
 public class CLI {
 	private static final Logger LOGGER = LogManager.getLogger(CLI.class.getName());
 
 	public static void main(String[] args) {
-		LOGGER.warn("startiing FSWalker CLI");
 		CommandLine cmd = processOptions(args);
 		if (cmd == null) {
 			System.exit(1);
@@ -40,19 +39,10 @@ public class CLI {
 		List<String> fileArgs = cmd.getArgList();
 		List<Path> paths = processPathList(fileArgs);
 
-		// configure visitor
-		FSVisitor visitor = new FSVisitor();
-		EnumSet<FSVisitorOption> visitorOptions = EnumSet.noneOf(FSVisitorOption.class);
-		if (cmd.hasOption("hc")) {
-			String hashType = "hash_" + cmd.getOptionValue("hc");
-			if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_SIZE20K.name(), hashType)) {
-				visitorOptions.add(FSVisitorOption.HASH_SIZE20K);
-			}
-		}
-		visitor.setOptions(visitorOptions);
+
 
 		// configure writer
-		FSEntryWriter fswriter = null;
+		FSWriter fswriter = null;
 
 		EnumSet<OPTION> writerOptions = EnumSet.noneOf(OPTION.class);
 
@@ -60,7 +50,7 @@ public class CLI {
 			Path outFile = FileSystems.getDefault().getPath(cmd.getOptionValue("o"));
 			try {
 				Files.createFile(outFile);
-				fswriter = new SimpleFSEntryWriter(outFile);
+				fswriter = new DefaultFSWriter(outFile);
 			} catch (IOException e) {
 				System.out.println("unable to write to " + outFile);
 				LOGGER.error(e);
@@ -69,7 +59,7 @@ public class CLI {
 		} else if (cmd.hasOption("q")) {
 			fswriter = null;// no writer
 		} else {
-			fswriter = new SimpleFSEntryWriter(System.out);
+			fswriter = new DefaultFSWriter(System.out);
 		}
 		if (cmd.hasOption('s')) {
 			writerOptions.add(OPTION.INCLUDE_DIR);
@@ -88,8 +78,52 @@ public class CLI {
 		if (fswriter != null)
 			fswriter.setOptions(writerOptions);
 
+		
+		// configure visitor
+		FSVisitor visitor = null;
+
+		EnumSet<FSVisitorOption> visitorOptions = EnumSet.noneOf(FSVisitorOption.class);
+		if (cmd.hasOption("hc")) {
+			String hashType = "hash_" + cmd.getOptionValue("hc");
+			if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_SIZE20K.name(), hashType)) {
+				visitorOptions.add(FSVisitorOption.HASH_SIZE20K);
+			}else  if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_FULL.name(), hashType)) {
+				visitorOptions.add(FSVisitorOption.HASH_FULL);
+			}else  if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_SIZE20KE.name(), hashType)) {
+				visitorOptions.add(FSVisitorOption.HASH_SIZE20KE);
+			}
+		}
+		ParallelFSVisitorContext ctx = new ParallelFSVisitorContext(fswriter);
+
+		boolean concurrencyMode=false;
+		if (cmd.hasOption('q') || cmd.hasOption('o')) {
+			concurrencyMode=true;
+		}
+		if (cmd.hasOption("co")) {
+			concurrencyMode=cmd.getOptionValue("co").equals("1");
+		}
+		if (concurrencyMode) {
+			 visitor = new ParallelFSVisitor(ctx);
+			((ParallelFSVisitor) visitor).setOptions(visitorOptions);
+			((ParallelFSVisitor) visitor).setWriter(fswriter);
+		}else {
+			visitor = new DefaultFSVisitor();
+			((DefaultFSVisitor) visitor).setOptions(visitorOptions);
+			((DefaultFSVisitor) visitor).setWriter(fswriter);
+
+		}
+
+		LOGGER.debug("startiing FSWalker CLI"+(concurrencyMode?"(concurrent mode)":""));
+		
 		// configure walker
-		FSWalkerAPI walker = new FSWalker(visitor);
+		FSWalker walker = null;
+
+		if (concurrencyMode) {
+			walker = new ParallelFSWalker(ctx);
+		} else {
+			walker = new DefaultFSWalker(visitor);
+		}
+		walker.setFSVisitor(visitor);
 		int maxDepth = Integer.MAX_VALUE;
 		if (cmd.hasOption('d')) {
 			try {
@@ -103,9 +137,7 @@ public class CLI {
 		maxDepth = maxDepth < 0 ? 0 : maxDepth;
 
 		// walk
-		visitor.setWriter(fswriter);
-
-		try (FSEntryWriter thisWriter = fswriter) {
+		try (FSWriter thisWriter = fswriter) {
 			for (Path p : paths) {
 				walker.walk(p, maxDepth);
 			}
@@ -121,7 +153,7 @@ public class CLI {
 			System.out.println("Directories: " + visitor.getDirCount());
 			System.out.println("Files: " + visitor.getFileCount());
 			System.out.println("Errors: " + visitor.getFileErrorCount());
-			System.out.println("Completed in " + (endTime - startTime) / 100 + " seconds");
+			System.out.println("Completed in " + (endTime - startTime) / 1000F + " seconds");
 		}
 	}
 
@@ -154,9 +186,13 @@ public class CLI {
 		options.addOption("h", "human", false, "human readable output");
 		options.addOption("l", "detail", false, "include detailed information for each file");
 		options.addOption("s", "directory", false, "include directories");
-
+//		options.addOption("p", "concurrency", false,
+//				"turn on concurrency mode. Warning: Traverse order is not deterministic.");
+		Option concurrencyOption = Option.builder("co").longOpt("concurrency").required(false).argName("concurrency mode").hasArg()
+				.desc("set to 1 to enable. Default is disabled in CLI except when -q or -o is used").build();
+		options.addOption(concurrencyOption);
 		Option hashOption = Option.builder("hc").longOpt("hash").required(false).argName("hash type").hasArg()
-				.desc("generate a content hash code.\n size20k: size + first 20k data").build();
+				.desc("generate a content hash code.\n size20k: size + first 20k data.\n size20ke: size+ the first 10k and the last 10k data.\n full: size + file content. Slow!").build();
 		options.addOption(hashOption);
 
 		Option outfile = Option.builder("o").longOpt("output").required(false).argName("file").hasArg()

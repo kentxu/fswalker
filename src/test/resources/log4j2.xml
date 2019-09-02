@@ -17,9 +17,9 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="com.labimo.fs" level="debug" additivity="false">
+        <Logger name="com.labimo.fs" level="trace" additivity="false">
             <appender-ref ref="fileLogger" level="debug" />
-            <appender-ref ref="console" />
+            <appender-ref ref="console" level="trace"/>
         </Logger>
         <Root level="debug" additivity="false">
             <appender-ref ref="console" />

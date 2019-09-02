@@ -8,7 +8,7 @@
 	<inceptionYear>2011</inceptionYear>
 	<groupId>com.labimo.fs</groupId>
 	<artifactId>fswalker</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -52,6 +52,11 @@
 			<groupId>net.openhft</groupId>
 			<artifactId>zero-allocation-hashing</artifactId>
 			<version>0.9</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.13</version>
 		</dependency>
 	</dependencies>
 
@@ -108,30 +113,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--  replaced w/ maven-shade-plugin due to java 11+ multi-release flag and the performance hit warning-->
-			<!-- <plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>com.labimo.fs.CLI</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin> -->
-
 		</plugins>
 	</build>
 	
