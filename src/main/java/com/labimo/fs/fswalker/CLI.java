@@ -87,6 +87,10 @@ public class CLI {
 			String hashType = "hash_" + cmd.getOptionValue("hc");
 			if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_SIZE20K.name(), hashType)) {
 				visitorOptions.add(FSVisitorOption.HASH_SIZE20K);
+			}else  if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_FULL.name(), hashType)) {
+				visitorOptions.add(FSVisitorOption.HASH_FULL);
+			}else  if (StringUtils.equalsIgnoreCase(FSVisitorOption.HASH_SIZE20KE.name(), hashType)) {
+				visitorOptions.add(FSVisitorOption.HASH_SIZE20KE);
 			}
 		}
 		ParallelFSVisitorContext ctx = new ParallelFSVisitorContext(fswriter);
@@ -188,7 +192,7 @@ public class CLI {
 				.desc("set to 1 to enable. Default is disabled in CLI except when -q or -o is used").build();
 		options.addOption(concurrencyOption);
 		Option hashOption = Option.builder("hc").longOpt("hash").required(false).argName("hash type").hasArg()
-				.desc("generate a content hash code.\n size20k: size + first 20k data.\n size20ke: size+ the first and last 20k data.\n full: size + file content. Slow!").build();
+				.desc("generate a content hash code.\n size20k: size + first 20k data.\n size20ke: size+ the first 10k and the last 10k data.\n full: size + file content. Slow!").build();
 		options.addOption(hashOption);
 
 		Option outfile = Option.builder("o").longOpt("output").required(false).argName("file").hasArg()

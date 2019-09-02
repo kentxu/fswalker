@@ -94,3 +94,14 @@ This mode is turned on by default console output is not required, e.g. -q or dat
 
 FSWalker log can be turned on using standard log4j2 configuration file. For example, the following loads log configuration in CLI.
 > java -Dlog4j.configurationFile=log4j2.xml  -jar target/fswalker-x.x.x.jar ~/temp
+
+
+## Milestones
+### 0.0.1
+* First release. 
+* Basic FSWalker implementation.
+* Basic CLI 
+
+### 0.2.0
+* Alternative concurrent implementation. 
+* Add two new hash modes: "full" and "size20ke" 

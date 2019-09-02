@@ -1,14 +1,12 @@
 package com.labimo.fs.fswalker;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -17,7 +15,9 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.openhft.hashing.LongHashFunction;
+import com.labimo.fs.fswalker.hash.FullContentHasher;
+import com.labimo.fs.fswalker.hash.NKEHasher;
+import com.labimo.fs.fswalker.hash.NKHasher;
 
 public class DefaultFSVisitor extends SimpleFileVisitor<Path> implements FSVisitor {
 
@@ -50,6 +50,8 @@ public class DefaultFSVisitor extends SimpleFileVisitor<Path> implements FSVisit
 	private FSVisitor parent=null;
 
 	protected volatile boolean completed;
+
+	private FSEntryHasher hasher;
 	
 
 	public DefaultFSVisitor() {
@@ -62,11 +64,20 @@ public class DefaultFSVisitor extends SimpleFileVisitor<Path> implements FSVisit
 	}
 
 	protected Set<FSVisitorOption> getOptions() {
-		return options;
+		return EnumSet.copyOf(options);
 	}
 
 	public void setOptions(Set<FSVisitorOption> options) {
 		this.options = options;
+		if (this.options.contains(FSVisitorOption.HASH_SIZE20K)) {
+			this.hasher=new NKHasher();
+		}else if (this.options.contains(FSVisitorOption.HASH_SIZE20KE)) {
+			this.hasher=new NKEHasher();
+		}else if (this.options.contains(FSVisitorOption.HASH_FULL)) {
+			this.hasher=new FullContentHasher();
+		}else {
+			this.hasher=null;
+		}
 	}
 
 	public FSWriter getWriter() {
@@ -102,22 +113,15 @@ public class DefaultFSVisitor extends SimpleFileVisitor<Path> implements FSVisit
 		
 		if (entry instanceof FSDirEntry) {
 			
-		}else if (this.options.contains(FSVisitorOption.HASH_SIZE20K)) {
-			Path p = entry.getPath();
-			try (InputStream fis = Files.newInputStream(p, StandardOpenOption.READ)) {
-
-				if (contentBytes == null) {
-					contentBytes = new byte[SAMPLING_CONTENTTRESH + Long.BYTES];
-				}
-				byte[] bytes = Utils.longToBytes(entry.getSize());
-				System.arraycopy(bytes, 0, contentBytes, 0, bytes.length);
-				int len = fis.read(contentBytes, 0, SAMPLING_CONTENTTRESH);
-				if (len > 0) {
-					long hash = LongHashFunction.xx().hashBytes(contentBytes);
-					entry.setHash(Long.toString(hash));
-				}
-			}catch (IOException e) {
-				entry.setError(e);
+		}else if (this.hasher!=null) {
+			try {
+				String h=this.hasher.hashFSEntry(entry,null);
+				entry.setHash(h);
+			} catch (IOException e1) {
+				LOGGER.trace("content hash failure ",e1);
+				entry.setError(e1);
+			} catch (Exception e) {
+				LOGGER.trace("content hash failure ",e);
 			}
 		}
 	}
