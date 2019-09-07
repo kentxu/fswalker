@@ -20,11 +20,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dizitart.no2.Nitrite;
 
 import com.labimo.fs.fswalker.FSWriter.OPTION;
 import com.labimo.fs.fswalker.concurrency.ParallelFSVisitor;
 import com.labimo.fs.fswalker.concurrency.ParallelFSVisitorContext;
 import com.labimo.fs.fswalker.concurrency.ParallelFSWalker;
+import com.labimo.fs.fswalker.writer.DefaultFSWriter;
+import com.labimo.fs.fswalker.writer.NitriteFSWriter;
 
 public class CLI {
 	private static final Logger LOGGER = LogManager.getLogger(CLI.class.getName());
@@ -47,10 +50,26 @@ public class CLI {
 		EnumSet<OPTION> writerOptions = EnumSet.noneOf(OPTION.class);
 
 		if (cmd.hasOption("o")) {
-			Path outFile = FileSystems.getDefault().getPath(cmd.getOptionValue("o"));
+			String outPath = cmd.getOptionValue("o");
+			String outType="";
+			String outFilePath="";
+			if (outPath.indexOf("::")>0) {
+				String[] parts = outPath.split("::");
+				outType=parts[0];
+				outFilePath=parts[1];
+			}
+			
+			Path outFile = FileSystems.getDefault().getPath(outFilePath);
+			
 			try {
-				Files.createFile(outFile);
-				fswriter = new DefaultFSWriter(outFile);
+				
+				if (StringUtils.equals(outType, "db")) {
+					 Nitrite db = Nitrite.builder().filePath(outFilePath).compressed().openOrCreate();
+					fswriter=new NitriteFSWriter(db);
+				}else {
+					Files.createFile(outFile);
+					fswriter = new DefaultFSWriter(outFile);
+				}
 			} catch (IOException e) {
 				System.out.println("unable to write to " + outFile);
 				LOGGER.error(e);

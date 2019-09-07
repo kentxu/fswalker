@@ -6,3 +6,5 @@
 /.classpath
 /bin/
 /log4j2.xml
+/.DS_Store
+/test.db

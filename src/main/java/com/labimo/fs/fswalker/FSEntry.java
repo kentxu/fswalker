@@ -14,6 +14,10 @@ public class FSEntry {
 	String hash=null;
 	IOException error;
 	
+	public static short TYPE_FILE=0;
+	public static short TYPE_DIR=1;
+	
+	
 	
 	public FSEntry(Path path) {
 		super();
@@ -73,5 +77,18 @@ public class FSEntry {
 	public void setHash(String hash) {
 		this.hash = hash;
 	}
-
+	
+	public short getType() {
+		return TYPE_FILE;
+	}
+	
+	public FileTime getModifiedTime() {
+		return this.attrs.lastModifiedTime();
+	}
+	
+	public FileTime getAccesTime() {
+		return this.attrs.lastAccessTime();
+	}
+	
+	
 }

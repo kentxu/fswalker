@@ -47,6 +47,15 @@ Show the list with content hash.
 Or, the speedy way to do the same.
 > java -jar target/fswalker-x.x.x.jar -l -hc size20k -co 1 c:\temp
 
+
+Output to a file.
+> java -jar target/fswalker-x.x.x.jar -l -hc size20k -co 1 -output my.txt c:\temp
+
+
+Output to Nitrite Database file. [https://github.com/dizitart/nitrite-database]
+
+> java -jar target/fswalker-x.x.x.jar -l -hc size20k -co 1 -output db::my c:\temp
+
 ## Sample API USage
 
 The snippet below scans directory "/Library".
@@ -105,7 +114,7 @@ Concurrent mode is the multi-threaded implementation of the walker. It does spee
 
 One major trade off is the sequence of traversal is not guaranteed in this mode. 
 
-This mode is turned on by default console output is not required, e.g. -q or database output. You can force concurrent mode wiht "-co 1". 
+This mode is turned on by default whenever console output is not required, e.g. -q or database output. You can force concurrent mode wiht "-co 1". 
 
 ## Troubleshoot
 
@@ -123,4 +132,11 @@ FSWalker log can be turned on using standard log4j2 configuration file. For exam
 ### 0.0.2
 * Concurrent walker implementation. 
 * Add two new hash modes: "full" and "size20ke" 
+
+### 0.0.3
+* output to Nitrite DB file (.fsdata).
+* need to output final visitor tally; need to include some system info, e.g. separator, base path
+
+
+
 

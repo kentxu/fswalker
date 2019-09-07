@@ -34,4 +34,9 @@ public class FSDirEntry extends FSEntry {
 		return "FSDirEntry [path=" + path + "]";
 	}
 	
+	@Override
+	public short getType() {
+		return TYPE_DIR;
+	}
+	
 }

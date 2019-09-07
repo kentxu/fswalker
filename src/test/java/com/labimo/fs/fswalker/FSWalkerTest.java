@@ -31,6 +31,7 @@ import org.junit.Test;
 import com.labimo.fs.fswalker.concurrency.ParallelFSVisitor;
 import com.labimo.fs.fswalker.concurrency.ParallelFSVisitorContext;
 import com.labimo.fs.fswalker.concurrency.ParallelFSWalker;
+import com.labimo.fs.fswalker.writer.DefaultFSWriter;
 
 import net.openhft.hashing.LongHashFunction;
 
@@ -247,6 +248,16 @@ public class FSWalkerTest {
 		assertEquals(0, visitor.getFileErrorCount());
 		assertEquals(5 , visitor.getFileCount());
 		LOGGER.info("ending testParallelVisitor");
+	}
+	
+	@Test
+	public void testString()  {
+		String s="a n%&t";
+		s=s.replaceAll("[^a-zA-Z0-9\\-\\_]", "");
+		assertEquals("ant",s);
+		s="a_ -Tn%&t--";
+		s=s.replaceAll("[^a-zA-Z0-9\\-\\_]", "");
+		assertEquals("a_-Tnt--",s);
 	}
 
 }

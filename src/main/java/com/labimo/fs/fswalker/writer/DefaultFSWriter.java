@@ -1,4 +1,4 @@
-package com.labimo.fs.fswalker;
+package com.labimo.fs.fswalker.writer;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,6 +20,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.CloseShieldOutputStream;
 
+import com.labimo.fs.fswalker.FSDirEntry;
+import com.labimo.fs.fswalker.FSEntry;
+import com.labimo.fs.fswalker.FSWriter;
+import com.labimo.fs.fswalker.FSWriter.OPTION;
+import com.labimo.fs.fswalker.WriterInfo;
 import com.opencsv.CSVWriter;
 
 public class DefaultFSWriter implements FSWriter {
@@ -29,6 +34,10 @@ public class DefaultFSWriter implements FSWriter {
 	private Writer osw = null;
 	private EnumSet<OPTION> options = EnumSet.noneOf(OPTION.class);
 	CSVWriter csvwriter = null;
+
+	private WriterInfo info;
+
+
 
 	public DefaultFSWriter(OutputStream os) {
 		CloseShieldOutputStream csos = new CloseShieldOutputStream(os);
@@ -136,6 +145,15 @@ public class DefaultFSWriter implements FSWriter {
 	@Override
 	public void setOptions(EnumSet<OPTION> options) {
 		this.options = options;
+	}
+
+	@Override
+	public WriterInfo getInfo() {
+		return info;
+	}
+	
+	public void setInfo(WriterInfo info) {
+		this.info = info;
 	}
 
 }

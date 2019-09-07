@@ -26,4 +26,11 @@ public interface FSWriter extends AutoCloseable {
 	void setOptions(EnumSet<OPTION> options);
 
 	EnumSet<OPTION> getOptions();
+	
+	/**
+	 * @return null if not available
+	 */
+	WriterInfo getInfo();
+	
+	
 }
